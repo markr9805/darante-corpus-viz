@@ -323,11 +323,14 @@
   .detail-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
     gap: 16px;
   }
+  .detail-themes { grid-column: 1; grid-row: 1; }
+  .detail-transcript { grid-column: 1; grid-row: 2; }
+  .detail-terms { grid-column: 2; grid-row: 1 / 3; }
   .detail-themes h4 { margin: 0 0 8px 0; color: #f0f6fc; font-size: 0.9em; }
   .detail-terms h4 { margin: 0 0 8px 0; color: #f0f6fc; font-size: 0.9em; }
-  .detail-transcript { margin-top: 12px; }
   .detail-transcript h4 { margin: 0 0 8px 0; color: #f0f6fc; font-size: 0.9em; }
   .transcript-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
   .transcript-btn {
@@ -1214,10 +1217,6 @@ function drawWordCloud(data) {
             <h4>🎭 Theme Breakdown</h4>
             ${themeBars}
           </div>
-          <div class="detail-terms">
-            <h4>🏷️ Top Distinctive Terms (TF-IDF)</h4>
-            <div>${termsHtml}</div>
-          </div>
           <div class="detail-transcript">
             <h4>📝 Transcript</h4>
             <div class="transcript-controls">
@@ -1230,6 +1229,10 @@ function drawWordCloud(data) {
             </div>
             <div id="transcript-content-${videoId}" class="transcript-content" style="display:none"></div>
             <button class="transcript-close-btn" id="transcript-close-${videoId}" onclick="toggleTranscriptFullscreen('${videoId}')" style="display:none">✕ Close</button>
+          </div>
+          <div class="detail-terms">
+            <h4>🏷️ Top Distinctive Terms (TF-IDF)</h4>
+            <div>${termsHtml}</div>
           </div>
         </div>
       </td>
