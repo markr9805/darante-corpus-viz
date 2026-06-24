@@ -227,8 +227,8 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* API key input */
-  .api-key-section {
+  /* Model settings */
+  .model-settings {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -236,19 +236,7 @@
     margin-bottom: 16px;
     font-size: 0.85em;
   }
-  .api-key-section details summary { cursor: pointer; color: var(--muted); }
-  .api-key-section input[type=password] {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 12px;
-    color: var(--text-bright);
-    width: 100%;
-    margin-top: 8px;
-    font-family: monospace;
-  }
-  .api-key-section input:focus { outline: none; border-color: var(--accent3); }
-  .api-key-section .hint { color: var(--muted); font-size: 0.8em; margin-top: 4px; }
+  .model-settings details summary { cursor: pointer; color: var(--muted); }
 
   /* Footer */
   .footer {
@@ -293,21 +281,16 @@
     <div class="theme-bar" id="theme-bar"></div>
   </div>
 
-  <div class="api-key-section">
+  <div class="model-settings">
     <details>
-      <summary>⚙️ AI Mode Settings</summary>
+      <summary>⚙️ AI Model Settings</summary>
       <div>
-        <label for="api-key">OpenRouter API Key <span style="color:var(--muted)">(needed for AI Q&A)</span></label>
-        <input type="password" id="api-key" placeholder="sk-or-v1-..." />
-        <div class="hint">Your key stays in your browser — never sent to our server. Get one at <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a></div>
-        <div style="margin-top:8px">
-          <label for="ai-model" style="color:var(--muted)">Model:</label>
-          <select id="ai-model" style="background:var(--bg);color:var(--text-bright);border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin-left:8px;">
-            <option value="google/gemini-2.5-flash">Gemini 2.5 Flash (fast, cheap)</option>
-            <option value="anthropic/claude-sonnet-4">Claude Sonnet 4 (thorough)</option>
-            <option value="openai/gpt-4o-mini">GPT-4o Mini (fast)</option>
-          </select>
-        </div>
+        <label for="ai-model" style="color:var(--muted)">Model:</label>
+        <select id="ai-model" style="background:var(--bg);color:var(--text-bright);border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin-left:8px;">
+          <option value="google/gemini-2.5-flash">Gemini 2.5 Flash (fast, cheap)</option>
+          <option value="anthropic/claude-sonnet-4">Claude Sonnet 4 (thorough)</option>
+          <option value="openai/gpt-4o-mini">GPT-4o Mini (fast)</option>
+        </select>
       </div>
     </details>
   </div>
@@ -495,8 +478,9 @@ async function doAsk() {
   const query = document.getElementById('query').value.trim();
   if (!query) return;
 
-  const apiKey = document.getElementById('api-key').value.trim();
+  // API key is handled server-side by the Cloudflare Worker
   const model = document.getElementById('ai-model').value;
+  const workerUrl = 'https://ask-the-corpus.mercury-toy.workers.dev';
   const answerDiv = document.getElementById('ai-answer');
   const answerText = document.getElementById('ai-answer-text');
 
@@ -539,32 +523,22 @@ If the context doesn't fully answer the question, say so and suggest what types 
   document.getElementById('btn-ai').disabled = true;
 
   try {
-    if (!apiKey) {
-      throw new Error('Please enter an OpenRouter API key in the Settings section above. You can get a free key at openrouter.ai/keys');
-    }
 
-    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const resp = await fetch(workerUrl, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': window.location.origin,
-        'X-Title': 'Ask the Corpus - Darante LaMar'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: model,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000
+        ]
       })
     });
 
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
-      throw new Error(err.error?.message || `API error: ${resp.status}`);
+      throw new Error(err.error || `API error: ${resp.status}`);
     }
 
     const data = await resp.json();
