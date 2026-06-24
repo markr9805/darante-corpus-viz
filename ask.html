@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ask the Corpus — Darante' LaMar</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-bright: #f0f6fc;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --accent3: #d2a8ff;
+    --accent4: #f0883e;
+    --danger: #f85149;
+    --muted: #8b949e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+  
+  /* Header */
+  .header { text-align: center; padding: 40px 0 30px; }
+  .header h1 { color: var(--text-bright); font-size: 2em; margin-bottom: 8px; }
+  .header p { color: var(--muted); font-size: 1.1em; }
+  .header .subtitle { color: var(--accent); font-size: 0.9em; margin-top: 4px; }
+  .stats { display: flex; gap: 16px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; text-align: center; }
+  .stat-value { font-size: 1.3em; color: var(--accent); font-weight: bold; }
+  .stat-label { color: var(--muted); font-size: 0.8em; }
+
+  /* Search */
+  .search-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .search-input-wrap {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .search-input-wrap textarea {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text-bright);
+    font-size: 1em;
+    resize: vertical;
+    min-height: 48px;
+    max-height: 160px;
+    font-family: inherit;
+  }
+  .search-input-wrap textarea:focus { outline: none; border-color: var(--accent); }
+  .btn-group { display: flex; flex-direction: column; gap: 8px; }
+  .btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-search { background: var(--accent); color: #fff; }
+  .btn-search:hover { background: #4090e0; }
+  .btn-ai { background: var(--accent3); color: #fff; }
+  .btn-ai:hover { background: #b090e0; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Theme filters */
+  .theme-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 16px;
+  }
+  .theme-chip {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 4px 12px;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--muted);
+  }
+  .theme-chip:hover { border-color: var(--accent); color: var(--text); }
+  .theme-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .theme-chip .count { opacity: 0.6; margin-left: 4px; }
+
+  /* Results */
+  .results-section { margin-top: 24px; }
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .results-header h2 { color: var(--text-bright); font-size: 1.2em; }
+  .results-count { color: var(--muted); font-size: 0.9em; }
+
+  /* AI Answer */
+  .ai-answer {
+    background: linear-gradient(135deg, #1a1030 0%, #161b22 100%);
+    border: 1px solid var(--accent3);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    display: none;
+  }
+  .ai-answer.visible { display: block; }
+  .ai-answer h3 { color: var(--accent3); margin-bottom: 12px; font-size: 1.1em; }
+  .ai-answer .answer-text { color: var(--text-bright); line-height: 1.7; }
+  .ai-answer .answer-text p { margin-bottom: 12px; }
+  .ai-answer .sources { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .ai-answer .sources h4 { color: var(--muted); font-size: 0.85em; margin-bottom: 8px; }
+  .ai-answer .loading { color: var(--accent3); font-style: italic; }
+  .ai-answer .error { color: var(--danger); }
+
+  /* Video cards */
+  .video-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .video-card:hover { border-color: var(--accent); }
+  .video-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .video-title {
+    color: var(--text-bright);
+    text-decoration: none;
+    font-size: 1em;
+    font-weight: 600;
+  }
+  .video-title:hover { color: var(--accent); }
+  .video-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 0.85em;
+  }
+  .video-meta span { display: flex; align-items: center; gap: 4px; }
+  .video-summary { margin-top: 8px; color: var(--text); font-size: 0.9em; }
+  .video-excerpt {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 0.85em;
+    font-style: italic;
+    border-left: 2px solid var(--border);
+    padding-left: 10px;
+  }
+  .video-themes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .video-theme {
+    background: rgba(88,166,255,0.1);
+    border: 1px solid rgba(88,166,255,0.3);
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 0.75em;
+    color: var(--accent);
+    cursor: pointer;
+  }
+  .video-theme:hover { background: rgba(88,166,255,0.2); }
+  .video-theme.primary {
+    background: rgba(88,166,255,0.2);
+    border-color: var(--accent);
+  }
+  .relevance-badge {
+    background: var(--accent2);
+    color: #fff;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 0.75em;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* Type badges */
+  .type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: 600;
+  }
+  .type-video { background: rgba(88,166,255,0.2); color: var(--accent); }
+  .type-short { background: rgba(63,185,80,0.2); color: var(--accent2); }
+  .type-stream { background: rgba(210,168,255,0.2); color: var(--accent3); }
+  .type-podcast { background: rgba(240,136,62,0.2); color: var(--accent4); }
+
+  /* Loading */
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* API key input */
+  .api-key-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.85em;
+  }
+  .api-key-section details summary { cursor: pointer; color: var(--muted); }
+  .api-key-section input[type=password] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text-bright);
+    width: 100%;
+    margin-top: 8px;
+    font-family: monospace;
+  }
+  .api-key-section input:focus { outline: none; border-color: var(--accent3); }
+  .api-key-section .hint { color: var(--muted); font-size: 0.8em; margin-top: 4px; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 40px 0 20px;
+    color: var(--muted);
+    font-size: 0.85em;
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 600px) {
+    .container { padding: 12px; }
+    .header h1 { font-size: 1.5em; }
+    .search-input-wrap { flex-direction: column; }
+    .btn-group { flex-direction: row; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🌱 Ask the Corpus</h1>
+    <p>Explore 1,400+ transcripts from Darante' LaMar</p>
+    <div class="subtitle">Search by theme, keyword, or ask a question and get an AI-synthesized answer</div>
+    <div class="stats" id="stats-bar">
+      <div class="stat"><div class="stat-value" id="stat-videos">—</div><div class="stat-label">Videos</div></div>
+      <div class="stat"><div class="stat-value" id="stat-themes">—</div><div class="stat-label">Themes</div></div>
+      <div class="stat"><div class="stat-value" id="stat-hours">—</div><div class="stat-label">Hours</div></div>
+    </div>
+  </div>
+
+  <div class="search-box">
+    <div class="search-input-wrap">
+      <textarea id="query" placeholder="What does Darante' say about the Black church experience? How does deconstruction affect relationships? What's the casino logic of seed faith?" rows="2"></textarea>
+      <div class="btn-group">
+        <button class="btn btn-search" id="btn-search" onclick="doSearch()">🔍 Search</button>
+        <button class="btn btn-ai" id="btn-ai" onclick="doAsk()">✨ Ask AI</button>
+      </div>
+    </div>
+    <div class="theme-bar" id="theme-bar"></div>
+  </div>
+
+  <div class="api-key-section">
+    <details>
+      <summary>⚙️ AI Mode Settings</summary>
+      <div>
+        <label for="api-key">OpenRouter API Key <span style="color:var(--muted)">(needed for AI Q&A)</span></label>
+        <input type="password" id="api-key" placeholder="sk-or-v1-..." />
+        <div class="hint">Your key stays in your browser — never sent to our server. Get one at <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a></div>
+        <div style="margin-top:8px">
+          <label for="ai-model" style="color:var(--muted)">Model:</label>
+          <select id="ai-model" style="background:var(--bg);color:var(--text-bright);border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin-left:8px;">
+            <option value="google/gemini-2.5-flash">Gemini 2.5 Flash (fast, cheap)</option>
+            <option value="anthropic/claude-sonnet-4">Claude Sonnet 4 (thorough)</option>
+            <option value="openai/gpt-4o-mini">GPT-4o Mini (fast)</option>
+          </select>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <div class="ai-answer" id="ai-answer">
+    <h3>✨ AI Answer</h3>
+    <div class="answer-text" id="ai-answer-text"></div>
+  </div>
+
+  <div class="results-section" id="results-section" style="display:none;">
+    <div class="results-header">
+      <h2 id="results-title">Results</h2>
+      <span class="results-count" id="results-count"></span>
+    </div>
+    <div id="results"></div>
+  </div>
+
+  <div class="footer">
+    <p>Built from the <a href="https://markr9805.github.io/darante-corpus-viz/">Darante' LaMar Transcript Corpus</a></p>
+    <p style="margin-top:4px">1,400+ videos transcribed & analyzed · <a href="https://youtube.com/@DaranteLaMar" target="_blank">YouTube Channel</a></p>
+  </div>
+</div>
+
+<script>
+// State
+let searchData = null;
+let activeTheme = null;
+
+// Load search index
+async function loadIndex() {
+  try {
+    const resp = await fetch('transcripts/search-index.json');
+    if (!resp.ok) throw new Error('Failed to load search index');
+    searchData = await resp.json();
+    document.getElementById('stat-videos').textContent = searchData.indexed_videos.toLocaleString();
+    document.getElementById('stat-themes').textContent = searchData.themes.length;
+    const totalMins = searchData.entries.reduce((s, e) => {
+      const [m, sec] = e.duration.split(':').map(Number);
+      return s + m + sec / 60;
+    }, 0);
+    document.getElementById('stat-hours').textContent = Math.round(totalMins / 60);
+    renderThemeBar();
+  } catch (e) {
+    console.error('Failed to load index:', e);
+    document.getElementById('stat-videos').textContent = '⚠️';
+  }
+}
+
+function renderThemeBar() {
+  const bar = document.getElementById('theme-bar');
+  const topThemes = searchData.themes.slice(0, 15);
+  bar.innerHTML = topThemes.map(t =>
+    `<span class="theme-chip${activeTheme === t ? ' active' : ''}" onclick="toggleTheme('${t}')">${t} <span class="count">${searchData.theme_counts[t]}</span></span>`
+  ).join('');
+}
+
+function toggleTheme(theme) {
+  activeTheme = activeTheme === theme ? null : theme;
+  renderThemeBar();
+  doSearch();
+}
+
+// Search
+function doSearch() {
+  const query = document.getElementById('query').value.trim().toLowerCase();
+  if (!query && !activeTheme) {
+    document.getElementById('results-section').style.display = 'none';
+    return;
+  }
+
+  const results = searchVideos(query);
+  renderResults(results, query);
+}
+
+function searchVideos(query) {
+  let entries = [...searchData.entries];
+  
+  // Filter by active theme
+  if (activeTheme) {
+    entries = entries.filter(e => e.themes && e.themes[activeTheme] !== undefined);
+  }
+
+  if (!query) {
+    // Sort by theme relevance if only theme filter active
+    if (activeTheme) {
+      entries.sort((a, b) => (b.themes[activeTheme] || 0) - (a.themes[activeTheme] || 0));
+    }
+    return entries.slice(0, 50);
+  }
+
+  const terms = query.split(/\s+/).filter(t => t.length > 1);
+  
+  // Score each entry
+  const scored = entries.map(e => {
+    let score = 0;
+    const titleLower = e.title.toLowerCase();
+    const summaryLower = (e.summary || '').toLowerCase();
+    const excerptLower = (e.excerpt || '').toLowerCase();
+    const themesStr = Object.keys(e.themes || {}).join(' ').toLowerCase();
+
+    for (const term of terms) {
+      // Title matches (highest weight)
+      if (titleLower.includes(term)) score += 10;
+      // Summary matches
+      if (summaryLower.includes(term)) score += 5;
+      // Theme matches
+      if (themesStr.includes(term)) score += 4;
+      // Excerpt matches
+      if (excerptLower.includes(term)) score += 2;
+    }
+
+    // Boost by primary theme score
+    if (e.primary_theme && query.includes(e.primary_theme.toLowerCase())) {
+      score += (e.themes[e.primary_theme] || 0) * 5;
+    }
+
+    // Boost longer content (deeper discussions)
+    const durParts = e.duration.split(':').map(Number);
+    const durMins = durParts[0] + durParts[1] / 60;
+    if (durMins > 10) score += 2;
+    if (durMins > 30) score += 2;
+
+    return { ...e, score };
+  }).filter(e => e.score > 0);
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, 30);
+}
+
+function renderResults(results, query) {
+  const section = document.getElementById('results-section');
+  const container = document.getElementById('results');
+  section.style.display = 'block';
+  document.getElementById('results-title').textContent = activeTheme ? `Theme: ${activeTheme}` : 'Results';
+  document.getElementById('results-count').textContent = `${results.length} video${results.length !== 1 ? 's' : ''}`;
+
+  container.innerHTML = results.map(e => {
+    const typeClass = `type-${e.type}`;
+    const themes = Object.entries(e.themes || {})
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+    
+    return `
+      <div class="video-card">
+        <div class="video-card-header">
+          <div style="flex:1">
+            <a class="video-title" href="${e.url}" target="_blank">${escHtml(e.title)}</a>
+            <div class="video-meta">
+              <span>📅 ${e.date || 'Unknown'}</span>
+              <span>⏱️ ${e.duration}</span>
+              <span class="type-badge ${typeClass}">${e.type}</span>
+              ${e.score ? `<span class="relevance-badge">Score: ${e.score}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        ${e.summary ? `<div class="video-summary">${escHtml(e.summary)}</div>` : ''}
+        ${e.excerpt ? `<div class="video-excerpt">${highlightTerms(escHtml(e.excerpt), query)}</div>` : ''}
+        <div class="video-themes">
+          ${themes.map(([t, s]) => `<span class="video-theme${t === e.primary_theme ? ' primary' : ''}" onclick="toggleTheme('${t}')">${t} (${s.toFixed(1)})</span>`).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function highlightTerms(text, query) {
+  if (!query) return text;
+  const terms = query.split(/\s+/).filter(t => t.length > 2);
+  let result = text;
+  for (const term of terms) {
+    const re = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    result = result.replace(re, '<mark style="background:rgba(88,166,255,0.3);color:var(--text-bright);padding:0 2px;border-radius:2px;">$1</mark>');
+  }
+  return result;
+}
+
+// AI Q&A
+async function doAsk() {
+  const query = document.getElementById('query').value.trim();
+  if (!query) return;
+
+  const apiKey = document.getElementById('api-key').value.trim();
+  const model = document.getElementById('ai-model').value;
+  const answerDiv = document.getElementById('ai-answer');
+  const answerText = document.getElementById('ai-answer-text');
+
+  // First do a search to get context
+  const results = searchVideos(query);
+  if (results.length === 0) {
+    answerDiv.classList.add('visible');
+    answerText.innerHTML = '<div class="error">No relevant videos found. Try a different question.</div>';
+    return;
+  }
+
+  // Show results too
+  renderResults(results, query);
+
+  // Build context from top results
+  const topResults = results.slice(0, 8);
+  const context = topResults.map((e, i) => {
+    let ctx = `[${i+1}] "${e.title}" (${e.date}, ${e.duration}, ${e.type})\n`;
+    if (e.summary) ctx += `Summary: ${e.summary}\n`;
+    if (e.themes && Object.keys(e.themes).length) {
+      const topThemes = Object.entries(e.themes).sort((a,b) => b[1]-a[1]).slice(0,3);
+      ctx += `Themes: ${topThemes.map(([t,s]) => `${t} (${s.toFixed(1)})`).join(', ')}\n`;
+    }
+    if (e.excerpt) ctx += `Excerpt: ${e.excerpt}\n`;
+    ctx += `URL: ${e.url}`;
+    return ctx;
+  }).join('\n\n');
+
+  const systemPrompt = `You are a knowledgeable assistant helping someone explore the Darante' LaMar transcript corpus — a collection of 1,400+ videos from a former pastor who deconstructed from Christianity and now builds secular community through Bridge City.
+
+Answer the user's question based on the provided video context. Cite specific videos by number [1], [2], etc. when referencing their ideas. Be direct, thoughtful, and nuanced — Darante's content deals with deconstruction, the Black church experience, religious trauma, moral philosophy, and community building.
+
+If the context doesn't fully answer the question, say so and suggest what types of videos might help.`;
+
+  const userPrompt = `Question: ${query}\n\nRelevant videos from the corpus:\n\n${context}\n\nPlease answer based on these sources, citing videos by number.`;
+
+  // Show loading
+  answerDiv.classList.add('visible');
+  answerText.innerHTML = '<div class="loading"><span class="spinner"></span> Thinking through the corpus...</div>';
+  document.getElementById('btn-ai').disabled = true;
+
+  try {
+    if (!apiKey) {
+      throw new Error('Please enter an OpenRouter API key in the Settings section above. You can get a free key at openrouter.ai/keys');
+    }
+
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Ask the Corpus - Darante LaMar'
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error: ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    const answer = data.choices?.[0]?.message?.content || 'No answer generated';
+    
+    // Format answer with markdown-like formatting
+    let formatted = escHtml(answer);
+    // Bold
+    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Video citations [1], [2], etc → clickable
+    formatted = formatted.replace(/\[(\d+)\]/g, (match, num) => {
+      const idx = parseInt(num) - 1;
+      if (idx >= 0 && idx < topResults.length) {
+        const e = topResults[idx];
+        return `<a href="${e.url}" target="_blank" title="${escHtml(e.title)}" style="color:var(--accent3);text-decoration:none;font-weight:bold;">[${num}]</a>`;
+      }
+      return match;
+    });
+    // Line breaks
+    formatted = formatted.replace(/\n\n/g, '</p><p>');
+    formatted = formatted.replace(/\n/g, '<br>');
+    formatted = `<p>${formatted}</p>`;
+
+    // Sources
+    const sourcesHtml = topResults.slice(0, 6).map((e, i) =>
+      `<div style="margin:4px 0"><span style="color:var(--accent3);font-weight:bold;">[${i+1}]</span> <a href="${e.url}" target="_blank" style="color:var(--accent);text-decoration:none;">${escHtml(e.title)}</a> <span style="color:var(--muted);">${e.date} · ${e.duration}</span></div>`
+    ).join('');
+
+    answerText.innerHTML = `<div class="answer-text">${formatted}</div>
+      <div class="sources"><h4>Sources from the corpus:</h4>${sourcesHtml}</div>`;
+
+  } catch (e) {
+    answerText.innerHTML = `<div class="error">${escHtml(e.message)}</div>`;
+  } finally {
+    document.getElementById('btn-ai').disabled = false;
+  }
+}
+
+// Keyboard shortcut
+document.getElementById('query').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (e.ctrlKey || e.metaKey) {
+      doAsk();
+    } else {
+      doSearch();
+    }
+  }
+});
+
+// Init
+loadIndex();
+</script>
+</body>
+</html>
