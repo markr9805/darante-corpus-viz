@@ -1261,11 +1261,11 @@ function drawWordCloud(data) {
         <div class="detail-content">
           <div class="detail-engagement">
             <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center">
-              <span style="color:#8b949e;font-size:0.85em;text-transform:uppercase;letter-spacing:1px">Engagement</span>
-              <div><span style="color:#8b949e;font-size:0.9em">Views</span> <span style="color:#58a6ff;font-weight:bold">${(v.view_count||0).toLocaleString()}</span></div>
-              <div><span style="color:#8b949e;font-size:0.9em">Likes</span> <span style="color:#3fb950;font-weight:bold">${(v.like_count||0).toLocaleString()}</span></div>
-              <div><span style="color:#8b949e;font-size:0.9em">Comments</span> <span style="color:#e3b341;font-weight:bold">${(v.comment_count||0).toLocaleString()}</span></div>
-              <div><span style="color:#8b949e;font-size:0.9em">Like Rate</span> <span style="color:#d2a8ff;font-weight:bold">${v.view_count ? ((v.like_count/v.view_count)*100).toFixed(1)+'%' : '—'}</span></div>
+              <span style="color:#8b949e;font-size:1.0em;text-transform:uppercase;letter-spacing:1px;font-weight:bold">Engagement</span>
+              <div><span style="color:#8b949e;font-size:1.1em">Views</span> <span style="color:#58a6ff;font-weight:bold;font-size:1.15em">${(v.view_count||0).toLocaleString()}</span></div>
+              <div><span style="color:#8b949e;font-size:1.1em">Likes</span> <span style="color:#3fb950;font-weight:bold;font-size:1.15em">${(v.like_count||0).toLocaleString()}</span></div>
+              <div><span style="color:#8b949e;font-size:1.1em">Comments</span> <span style="color:#e3b341;font-weight:bold;font-size:1.15em">${(v.comment_count||0).toLocaleString()}</span></div>
+              <div><span style="color:#8b949e;font-size:1.1em">Like Rate</span> <span style="color:#d2a8ff;font-weight:bold;font-size:1.15em">${v.view_count ? ((v.like_count/v.view_count)*100).toFixed(1)+'%' : '—'}</span></div>
             </div>
             ${v.llm_summary ? '<div style="margin-top:8px;padding:8px;border-radius:6px;background:#161b22;border:1px solid #30363d;font-size:1.05em;word-break:break-word;overflow-wrap:anywhere;line-height:1.5"><span style="color:#8b949e">AI Summary: </span>'+v.llm_summary+'</div>' : ''}
           </div>
