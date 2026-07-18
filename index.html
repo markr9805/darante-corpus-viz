@@ -34,10 +34,20 @@
   }
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
     margin-bottom: 24px;
   }
+  .stats-row-label {
+    grid-column: 1 / -1;
+    color: #8b949e;
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding-bottom: 2px;
+    margin-top: 4px;
+  }
+  .stats-row-label:first-child { margin-top: 0; }
   .stat-card {
     background: #161b22;
     border: 1px solid #30363d;
@@ -325,13 +335,13 @@
   }
   .detail-content {
     display: grid;
-    grid-template-columns: 1fr 2fr;
-    grid-template-rows: auto 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 16px;
   }
-  .detail-terms { grid-column: 1; grid-row: 1 / 3; }
-  .detail-themes { grid-column: 2; grid-row: 1; }
-  .detail-transcript { grid-column: 2; grid-row: 2; }
+  .detail-engagement { grid-column: 1 / -1; }
+  .detail-terms { grid-column: 1; }
+  .detail-themes { grid-column: 2; }
+  .detail-transcript { grid-column: 1 / -1; }
   .detail-themes h4 { margin: 0 0 8px 0; color: #f0f6fc; font-size: 0.9em; }
   .detail-terms h4 { margin: 0 0 8px 0; color: #f0f6fc; font-size: 0.9em; }
   .detail-transcript h4 { margin: 0 0 8px 0; color: #f0f6fc; font-size: 0.9em; }
@@ -433,6 +443,7 @@
 <h1>🎙️ Darante' LaMar — Transcript Corpus Analysis</h1>
 
 <div class="stats-grid">
+  <div class="stats-row-label">Content Analysis</div>
   <div class="stat-card" id="stat-videos">
     <div class="stat-value" id="stat-videos-value">1425</div>
     <div class="stat-label">Videos Analyzed</div>
@@ -449,6 +460,7 @@
     <div class="stat-value" id="stat-hours-value">660.4h</div>
     <div class="stat-label">Hours of Content</div>
   </div>
+  <div class="stats-row-label">Engagement</div>
   <div class="stat-card" id="stat-views">
     <div class="stat-value" id="stat-views-value">7.1M</div>
     <div class="stat-label">Total Views</div>
@@ -1245,15 +1257,17 @@ function drawWordCloud(data) {
     detailTr.innerHTML = `
       <td colspan="10" style="padding:12px 10px;background:#0d1117;border-bottom:2px solid #30363d;">
         <div class="detail-content">
-          <div class="detail-terms">
-            <h4>📊 Engagement</h4>
-            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
-              <div><span style="color:#8b949e;font-size:0.8em">Views</span><br><span style="color:#58a6ff;font-size:1.2em;font-weight:bold">${(v.view_count||0).toLocaleString()}</span></div>
-              <div><span style="color:#8b949e;font-size:0.8em">Likes</span><br><span style="color:#3fb950;font-size:1.2em;font-weight:bold">${(v.like_count||0).toLocaleString()}</span></div>
-              <div><span style="color:#8b949e;font-size:0.8em">Comments</span><br><span style="color:#e3b341;font-size:1.2em;font-weight:bold">${(v.comment_count||0).toLocaleString()}</span></div>
-              <div><span style="color:#8b949e;font-size:0.8em">Like Rate</span><br><span style="color:#d2a8ff;font-size:1.2em;font-weight:bold">${v.view_count ? ((v.like_count/v.view_count)*100).toFixed(1)+'%' : '—'}</span></div>
+          <div class="detail-engagement">
+            <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center">
+              <span style="color:#8b949e;font-size:0.75em;text-transform:uppercase;letter-spacing:1px">Engagement</span>
+              <div><span style="color:#8b949e;font-size:0.8em">Views</span> <span style="color:#58a6ff;font-weight:bold">${(v.view_count||0).toLocaleString()}</span></div>
+              <div><span style="color:#8b949e;font-size:0.8em">Likes</span> <span style="color:#3fb950;font-weight:bold">${(v.like_count||0).toLocaleString()}</span></div>
+              <div><span style="color:#8b949e;font-size:0.8em">Comments</span> <span style="color:#e3b341;font-weight:bold">${(v.comment_count||0).toLocaleString()}</span></div>
+              <div><span style="color:#8b949e;font-size:0.8em">Like Rate</span> <span style="color:#d2a8ff;font-weight:bold">${v.view_count ? ((v.like_count/v.view_count)*100).toFixed(1)+'%' : '—'}</span></div>
             </div>
-            ${v.llm_summary ? '<div style="margin-bottom:12px;padding:8px;border-radius:6px;background:#161b22;border:1px solid #30363d"><span style="color:#8b949e;font-size:0.8em">AI Summary</span><br>'+v.llm_summary+'</div>' : ''}
+            ${v.llm_summary ? '<div style="margin-top:8px;padding:8px;border-radius:6px;background:#161b22;border:1px solid #30363d;font-size:0.85em"><span style="color:#8b949e">AI Summary: </span>'+v.llm_summary+'</div>' : ''}
+          </div>
+          <div class="detail-terms">
             <h4>🏷️ Top Distinctive Terms (TF-IDF)</h4>
             <div>${termsHtml}</div>
           </div>
