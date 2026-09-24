@@ -390,6 +390,8 @@ function searchVideos(query) {
     const summaryLower = (e.summary || '').toLowerCase();
     const excerptLower = (e.excerpt || '').toLowerCase();
     const themesStr = Object.keys(e.themes || {}).join(' ').toLowerCase();
+    const commentsTop = (e.comments && e.comments.top) || [];
+    const commentsStr = commentsTop.join(' ').toLowerCase();
 
     for (const term of terms) {
       // Title matches (highest weight)
@@ -400,6 +402,8 @@ function searchVideos(query) {
       if (themesStr.includes(term)) score += 4;
       // Excerpt matches
       if (excerptLower.includes(term)) score += 2;
+      // Top comment matches
+      if (commentsStr.includes(term)) score += 2;
     }
 
     // Boost by primary theme score
@@ -448,6 +452,15 @@ function renderResults(results, query) {
         </div>
         ${e.summary ? `<div class="video-summary">${escHtml(e.summary)}</div>` : ''}
         ${e.excerpt ? `<div class="video-excerpt">${highlightTerms(escHtml(e.excerpt), query)}</div>` : ''}
+        ${(() => {
+          if (!e.comments || !e.comments.top || !e.comments.top.length) return '';
+          const terms = (query || '').split(/\s+/).filter(t => t.length > 1);
+          let hit = e.comments.top.find(t => terms.some(term => t.toLowerCase().includes(term)));
+          if (!hit) hit = e.comments.top[0];
+          const s = e.comments.sentiment;
+          const sent = s ? ` · <span style="color:${s.compound_avg >= 0.05 ? '#3fb950' : s.compound_avg <= -0.05 ? '#ff7b72' : '#8b949e'}">${s.pos_pct}% pos / ${s.neg_pct}% neg</span>` : '';
+          return `<div class="video-excerpt" style="color:#8b949e">💬 “${highlightTerms(escHtml(hit), query)}”${sent}</div>`;
+        })()}
         <div class="video-themes">
           ${themes.map(([t, s]) => `<span class="video-theme${t === e.primary_theme ? ' primary' : ''}" onclick="toggleTheme('${t}')">${t} (${s.toFixed(1)})</span>`).join('')}
         </div>
