@@ -458,7 +458,7 @@ function renderResults(results, query) {
           let hit = e.comments.top.find(t => terms.some(term => t.toLowerCase().includes(term)));
           if (!hit) hit = e.comments.top[0];
           const s = e.comments.sentiment;
-          const sent = s ? ` · <span style="color:${s.compound_avg >= 0.05 ? '#3fb950' : s.compound_avg <= -0.05 ? '#ff7b72' : '#8b949e'}">${s.pos_pct}% pos / ${s.neg_pct}% neg</span>` : '';
+          const sent = s ? ` · <span style="color:${(s.pos_pct || 0) >= (s.neg_pct || 0) ? '#3fb950' : '#ff7b72'}">${s.pos_pct}% pos / ${s.neg_pct}% neg</span>` : '';
           return `<div class="video-excerpt" style="color:#8b949e">💬 “${highlightTerms(escHtml(hit), query)}”${sent}</div>`;
         })()}
         <div class="video-themes">
